@@ -1,8 +1,8 @@
 ﻿using Azure.Data.Tables;
-using AzureTableStorageMigrator.Extensions;
+using Codehard.AzureTableStorageMigrator.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace AzureTableStorageMigrator;
+namespace Codehard.AzureTableStorageMigrator;
 
 public class AzureMigrator : IMigrator
 {

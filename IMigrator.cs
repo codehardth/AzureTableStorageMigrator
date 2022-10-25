@@ -1,4 +1,4 @@
-namespace AzureTableStorageMigrator;
+namespace Codehard.AzureTableStorageMigrator;
 
 public interface IMigrator
 {

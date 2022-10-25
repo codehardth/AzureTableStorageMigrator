@@ -17,9 +17,9 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build AzureTableStorageMigrator.csproj --configuration Release --no-restore /p:ContinuousIntegrationBuild=true
-    - name: Publish AzureTableStorageMigrator To Nuget
+      run: dotnet build Codehard.AzureTableStorageMigrator.csproj --configuration Release --no-restore /p:ContinuousIntegrationBuild=true
+    - name: Publish Codehard.AzureTableStorageMigrator To Nuget
       uses: brandedoutcast/publish-nuget@v2.5.2
       with:
-          PROJECT_FILE_PATH: AzureTableStorageMigrator.csproj
+          PROJECT_FILE_PATH: Codehard.AzureTableStorageMigrator.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}

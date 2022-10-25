@@ -1,6 +1,6 @@
 using Azure.Data.Tables;
 
-namespace AzureTableStorageMigrator;
+namespace Codehard.AzureTableStorageMigrator;
 
 internal class MigrationOperation
 {

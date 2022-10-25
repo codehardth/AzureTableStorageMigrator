@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace AzureTableStorageMigrator;
+namespace Codehard.AzureTableStorageMigrator;
 
 public class MigrationHistory : ITableEntity
 {

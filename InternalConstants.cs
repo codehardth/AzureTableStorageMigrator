@@ -1,4 +1,4 @@
-namespace AzureTableStorageMigrator;
+namespace Codehard.AzureTableStorageMigrator;
 
 internal static class InternalConstants
 {

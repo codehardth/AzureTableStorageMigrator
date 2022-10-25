@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace AzureTableStorageMigrator.Extensions;
+namespace Codehard.AzureTableStorageMigrator.Extensions;
 
 public static class TableClientExtensions
 {
