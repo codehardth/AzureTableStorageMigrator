@@ -3,7 +3,8 @@ namespace AzureTableStorageMigrator;
 internal enum OperationMode
 {
     Insert,
-    Update,
+    UpdateMerge,
+    UpdateReplace,
     UpsertMerge,
     UpsertReplace,
     DeleteSingle,

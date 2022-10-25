@@ -46,7 +46,8 @@ internal class MigrationOperation
                 this.Mode = operation switch
                 {
                     InternalConstants.InsertMode => OperationMode.Insert,
-                    InternalConstants.UpdateMode => OperationMode.Update,
+                    InternalConstants.UpdateMergeMode => OperationMode.UpdateMerge,
+                    InternalConstants.UpdateReplaceMode => OperationMode.UpdateReplace,
                     InternalConstants.UpsertMergeMode => OperationMode.UpsertMerge,
                     InternalConstants.UpsertReplaceMode => OperationMode.UpsertReplace,
                     _ => throw new NotSupportedException($"Operation '{operation}' is not supported in this context"),

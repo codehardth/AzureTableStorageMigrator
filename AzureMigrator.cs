@@ -91,15 +91,6 @@ public class AzureMigrator : IMigrator
         {
             switch (op.Mode)
             {
-                case OperationMode.Insert:
-                    batch.Add(new TableTransactionAction(TableTransactionActionType.Add, op.Entity));
-                    break;
-                case OperationMode.Update:
-                    batch.Add(new TableTransactionAction(TableTransactionActionType.UpsertMerge, op.Entity));
-                    break;
-                case OperationMode.DeleteSingle:
-                    batch.Add(new TableTransactionAction(TableTransactionActionType.Delete, op.Entity));
-                    break;
                 case OperationMode.DeleteAll:
                     // Exceptional case that can't do transaction like the rest
                     var tableClient = new TableClient(this.options.ConnectionString, op.TableName);
@@ -107,7 +98,20 @@ public class AzureMigrator : IMigrator
                     await tableClient.DeleteAsync(cancellationToken);
                     break;
                 default:
-                    throw new NotSupportedException($"Operation '{op.Mode}' is not supported in this context");
+                    batch.Add(
+                        new TableTransactionAction(
+                            op.Mode switch
+                            {
+                                OperationMode.Insert => TableTransactionActionType.Add,
+                                OperationMode.UpdateMerge => TableTransactionActionType.UpdateMerge,
+                                OperationMode.UpdateReplace => TableTransactionActionType.UpdateReplace,
+                                OperationMode.UpsertMerge => TableTransactionActionType.UpsertMerge,
+                                OperationMode.UpsertReplace => TableTransactionActionType.UpsertReplace,
+                                OperationMode.DeleteSingle => TableTransactionActionType.Delete,
+                                _ => throw new NotSupportedException(
+                                    $"Operation '{op.Mode}' is not supported in this context"),
+                            }, op.Entity));
+                    break;
             }
         }
 
