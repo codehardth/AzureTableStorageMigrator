@@ -5,6 +5,7 @@ internal enum OperationMode
     Insert,
     UpdateMerge,
     UpdateReplace,
+    UpdateAll,
     UpsertMerge,
     UpsertReplace,
     DeleteSingle,

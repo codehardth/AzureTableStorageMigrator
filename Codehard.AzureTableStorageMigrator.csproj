@@ -4,10 +4,11 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.0.2</Version>
+        <Version>1.0.3</Version>
         <Description>A migration library for Azure Table Storage</Description>
-        <PackageReleaseNotes>Fix bug that caused operations to not applied correctly.</PackageReleaseNotes>
+        <PackageReleaseNotes>Add support for UpdateAll operation.</PackageReleaseNotes>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>

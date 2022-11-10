@@ -86,6 +86,8 @@ public class AzureMigrator : IMigrator
 
             var tableClient = new TableClient(this.options.ConnectionString, tableName);
 
+            await tableClient.CreateIfNotExistsAsync(cancellationToken);
+
             var batch = new List<TableTransactionAction>();
 
             foreach (var op in group)
@@ -97,6 +99,15 @@ public class AzureMigrator : IMigrator
                         await tableClient.DeleteAsync(cancellationToken);
 
                         break;
+                    case OperationMode.UpdateAll:
+                    {
+                        await foreach (var tx in PrepareUpdatedEntitiesTransactionActionAsync(tableClient, op))
+                        {
+                            batch.Add(tx);
+                        }
+
+                        break;
+                    }
                     default:
                         batch.Add(
                             new TableTransactionAction(
@@ -116,9 +127,39 @@ public class AzureMigrator : IMigrator
                 }
             }
 
-            foreach (var chunk in batch.Chunk(100))
+            foreach (var partition in batch.GroupBy(e => e.Entity.PartitionKey))
             {
-                await tableClient.SubmitTransactionAsync(chunk, cancellationToken);
+                foreach (var chunk in partition.Chunk(100))
+                {
+                    await tableClient.SubmitTransactionAsync(chunk, cancellationToken);
+                }
+            }
+        }
+
+        async IAsyncEnumerable<TableTransactionAction> PrepareUpdatedEntitiesTransactionActionAsync(
+            TableClient tableClient,
+            MigrationOperation op)
+        {
+            const int pageSize = 100;
+
+            var pages =
+                tableClient.QueryAsync<TableEntity>(maxPerPage: pageSize,
+                    cancellationToken: cancellationToken);
+
+            await foreach (var page in pages.AsPages(pageSizeHint: pageSize)
+                               .WithCancellation(cancellationToken))
+            {
+                var entities = page.Values;
+
+                foreach (var entity in entities)
+                {
+                    var updatedEntity = op.MutateEntityFunc?.Invoke(entity);
+
+                    if (updatedEntity != null)
+                    {
+                        yield return new TableTransactionAction(TableTransactionActionType.UpdateMerge, updatedEntity);
+                    }
+                }
             }
         }
     }
