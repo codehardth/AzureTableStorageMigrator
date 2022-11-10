@@ -4,9 +4,9 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.0.1</Version>
+        <Version>1.0.2</Version>
         <Description>A migration library for Azure Table Storage</Description>
-        <PackageReleaseNotes>Update internal handler to support update/upsert with merge and replace.</PackageReleaseNotes>
+        <PackageReleaseNotes>Fix bug that caused operations to not applied correctly.</PackageReleaseNotes>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 

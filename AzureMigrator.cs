@@ -60,14 +60,9 @@ public class AzureMigrator : IMigrator
             {
                 var lines = await File.ReadAllLinesAsync(file, cancellationToken);
 
-                var operations = lines.Select(l => new MigrationOperation(l));
+                var operations = lines.Select(MigrationOperation.Parse);
 
-                var batch = await this.BuildTableTransactionActionAsync(operations, cancellationToken);
-
-                foreach (var chunk in batch.Chunk(100))
-                {
-                    await migrationHistoryTableClient.SubmitTransactionAsync(chunk, cancellationToken);
-                }
+                await this.ApplyMigrationOperationsAsync(operations, cancellationToken);
 
                 var migrationHistory = MigrationHistory.Create(rowKey);
 
@@ -81,40 +76,50 @@ public class AzureMigrator : IMigrator
         }
     }
 
-    private async ValueTask<IEnumerable<TableTransactionAction>> BuildTableTransactionActionAsync(
+    private async ValueTask ApplyMigrationOperationsAsync(
         IEnumerable<MigrationOperation> operations,
         CancellationToken cancellationToken = default)
     {
-        var batch = new List<TableTransactionAction>();
-
-        foreach (var op in operations)
+        foreach (var group in operations.GroupBy(o => o.TableName))
         {
-            switch (op.Mode)
-            {
-                case OperationMode.DeleteAll:
-                    // Exceptional case that can't do transaction like the rest
-                    var tableClient = new TableClient(this.options.ConnectionString, op.TableName);
+            var tableName = group.Key;
 
-                    await tableClient.DeleteAsync(cancellationToken);
-                    break;
-                default:
-                    batch.Add(
-                        new TableTransactionAction(
-                            op.Mode switch
-                            {
-                                OperationMode.Insert => TableTransactionActionType.Add,
-                                OperationMode.UpdateMerge => TableTransactionActionType.UpdateMerge,
-                                OperationMode.UpdateReplace => TableTransactionActionType.UpdateReplace,
-                                OperationMode.UpsertMerge => TableTransactionActionType.UpsertMerge,
-                                OperationMode.UpsertReplace => TableTransactionActionType.UpsertReplace,
-                                OperationMode.DeleteSingle => TableTransactionActionType.Delete,
-                                _ => throw new NotSupportedException(
-                                    $"Operation '{op.Mode}' is not supported in this context"),
-                            }, op.Entity));
-                    break;
+            var tableClient = new TableClient(this.options.ConnectionString, tableName);
+
+            var batch = new List<TableTransactionAction>();
+
+            foreach (var op in group)
+            {
+                switch (op.Mode)
+                {
+                    case OperationMode.DeleteAll:
+                        // Exceptional case that can't do transaction like the rest
+                        await tableClient.DeleteAsync(cancellationToken);
+
+                        break;
+                    default:
+                        batch.Add(
+                            new TableTransactionAction(
+                                op.Mode switch
+                                {
+                                    OperationMode.Insert => TableTransactionActionType.Add,
+                                    OperationMode.UpdateMerge => TableTransactionActionType.UpdateMerge,
+                                    OperationMode.UpdateReplace => TableTransactionActionType.UpdateReplace,
+                                    OperationMode.UpsertMerge => TableTransactionActionType.UpsertMerge,
+                                    OperationMode.UpsertReplace => TableTransactionActionType.UpsertReplace,
+                                    OperationMode.DeleteSingle => TableTransactionActionType.Delete,
+                                    _ => throw new NotSupportedException(
+                                        $"Operation '{op.Mode}' is not supported in this context"),
+                                }, op.Entity));
+
+                        break;
+                }
+            }
+
+            foreach (var chunk in batch.Chunk(100))
+            {
+                await tableClient.SubmitTransactionAsync(chunk, cancellationToken);
             }
         }
-
-        return batch;
     }
 }

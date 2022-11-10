@@ -4,7 +4,17 @@ namespace Codehard.AzureTableStorageMigrator;
 
 internal class MigrationOperation
 {
-    public MigrationOperation(string op)
+    private MigrationOperation(
+        OperationMode mode,
+        string tableName,
+        ITableEntity? entity)
+    {
+        this.Mode = mode;
+        this.TableName = tableName;
+        this.Entity = entity;
+    }
+
+    public static MigrationOperation Parse(string op)
     {
         // operation : ops_name table_name (partition_key row_key properties+) | (partition_key row_key) | *
         // ops_name : INS | UPD | DEL
@@ -19,7 +29,8 @@ internal class MigrationOperation
         var operation = detail[0];
         var tableName = detail[1];
 
-        this.TableName = tableName;
+        OperationMode mode;
+        ITableEntity? entity = default;
 
         switch (operation)
         {
@@ -29,21 +40,21 @@ internal class MigrationOperation
 
                 if (hasWildcard)
                 {
-                    this.Mode = OperationMode.DeleteAll;
+                    mode = OperationMode.DeleteAll;
                 }
                 else
                 {
-                    this.Mode = OperationMode.DeleteSingle;
+                    mode = OperationMode.DeleteSingle;
                     var partitionKey = detail[2];
                     var rowKey = detail[3];
-                    this.Entity = GetTableEntity(partitionKey, rowKey);
+                    entity = GetTableEntity(partitionKey, rowKey);
                 }
 
                 break;
             }
             default:
             {
-                this.Mode = operation switch
+                mode = operation switch
                 {
                     InternalConstants.InsertMode => OperationMode.Insert,
                     InternalConstants.UpdateMergeMode => OperationMode.UpdateMerge,
@@ -54,10 +65,13 @@ internal class MigrationOperation
                 };
                 var partitionKey = detail[2];
                 var rowKey = detail[3];
-                this.Entity = GetTableEntity(partitionKey, rowKey, detail[4..]);
+                entity = GetTableEntity(partitionKey, rowKey, detail[4..]);
+
                 break;
             }
         }
+
+        return new(mode, tableName, entity);
     }
 
     public OperationMode Mode { get; }
@@ -73,8 +87,8 @@ internal class MigrationOperation
     {
         var entity = new TableEntity
         {
-            {"PartitionKey", partitionKey},
-            {"RowKey", rowKey},
+            { "PartitionKey", partitionKey },
+            { "RowKey", rowKey },
         };
 
         foreach (var row in properties)
