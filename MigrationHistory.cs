@@ -15,9 +15,14 @@ public class MigrationHistory : ITableEntity
 
     public static MigrationHistory Create(string migrationName)
     {
+        return Create(InternalConstants.MigrationHistoryPartitionKey, migrationName);
+    }
+
+    public static MigrationHistory Create(string partitionKey, string migrationName)
+    {
         return new MigrationHistory
         {
-            PartitionKey = "migration",
+            PartitionKey = partitionKey,
             RowKey = migrationName,
         };
     }

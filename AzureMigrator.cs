@@ -40,13 +40,15 @@ public class AzureMigrator : IMigrator
 
         await migrationHistoryTableClient.CreateIfNotExistsAsync(cancellationToken);
 
+        var migrateHistoryPartition = this.options.ProjectName ?? InternalConstants.MigrationHistoryPartitionKey;
+
         foreach (var file in migrationFiles)
         {
             var rowKey = Path.GetFileNameWithoutExtension(file);
 
             var history =
                 await migrationHistoryTableClient.GetByPartitionKeyAndRowKeyAsync<MigrationHistory>(
-                    this.options.ProjectName ?? InternalConstants.MigrationHistoryPartitionKey,
+                    migrateHistoryPartition,
                     rowKey,
                     cancellationToken: cancellationToken);
 
@@ -64,7 +66,7 @@ public class AzureMigrator : IMigrator
 
                 await this.ApplyMigrationOperationsAsync(operations, cancellationToken);
 
-                var migrationHistory = MigrationHistory.Create(rowKey);
+                var migrationHistory = MigrationHistory.Create(migrateHistoryPartition, rowKey);
 
                 await migrationHistoryTableClient.AddEntityAsync(migrationHistory, cancellationToken);
             }

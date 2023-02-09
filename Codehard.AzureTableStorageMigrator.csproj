@@ -4,9 +4,9 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.0.4</Version>
+        <Version>1.0.5</Version>
         <Description>A migration library for Azure Table Storage</Description>
-        <PackageReleaseNotes>Add option to customize project name as a partition key for migration history.</PackageReleaseNotes>
+        <PackageReleaseNotes>Fix option to customize project name as a partition key for migration history not applied correctly.</PackageReleaseNotes>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
