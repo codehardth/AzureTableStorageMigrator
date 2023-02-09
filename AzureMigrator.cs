@@ -46,7 +46,7 @@ public class AzureMigrator : IMigrator
 
             var history =
                 await migrationHistoryTableClient.GetByPartitionKeyAndRowKeyAsync<MigrationHistory>(
-                    InternalConstants.MigrationHistoryPartitionKey,
+                    this.options.ProjectName ?? InternalConstants.MigrationHistoryPartitionKey,
                     rowKey,
                     cancellationToken: cancellationToken);
 
